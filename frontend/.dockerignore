@@ -1,0 +1,12 @@
+node_modules
+.output
+.nuxt
+.cache
+dist
+.env
+npm-debug.log
+Dockerfile
+.git
+.gitignore
+.vscode
+.idea
