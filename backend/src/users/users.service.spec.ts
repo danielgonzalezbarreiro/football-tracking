@@ -3,6 +3,8 @@ import { UsersService } from './users.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
+import { AuthService } from '../auth/auth.service';
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -27,6 +29,12 @@ describe('UsersService', () => {
           provide: getModelToken(User.name),
           useValue: userModelMock,
         },
+        {
+          provide: AuthService,
+          useValue: {
+            generateToken: jest.fn().mockReturnValue('fake-token'),
+          }
+        }
       ],
     }).compile();
 
@@ -68,4 +76,19 @@ describe('UsersService', () => {
     expect(userModel.findOne).toHaveBeenCalledWith({ email: 'test@test.com' });
     expect(result).toEqual(fakeUser);
   });
+
+  it('should login succesfully with correct credentials', async () => {
+    const dto = { email: 'test@test.com', password: 'test1234' };
+    const fakeUser = { _id: 'fakeId', name: 'Test', email: dto.email, password: 'hashed' };
+    
+    userModel.findOne.mockResolvedValue(fakeUser);
+    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => 'hashed');
+
+    const result = await service.login(dto);
+
+    expect(userModel.findOne).toHaveBeenCalledWith({ email: dto.email });
+    expect(bcrypt.compare).toHaveBeenCalledWith(dto.password, fakeUser.password);
+    expect(result).toEqual({access_token: 'fake-token'});
+  })
+
 });
