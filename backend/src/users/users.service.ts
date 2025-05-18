@@ -41,4 +41,8 @@ export class UsersService {
 
       return {access_token: token};
     }
+
+    async getMe(user: User) : Promise<User> {
+      return await this.userModel.findById(user._id).select('-password -createdAt -updatedAt');
+    }
 }
