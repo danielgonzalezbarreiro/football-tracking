@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
@@ -6,7 +6,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AuthService } from '../auth/auth.service';
 import * as bcrypt from 'bcrypt';
-import { getConfigToken } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -44,5 +43,46 @@ export class UsersService {
 
     async getMe(user: User) : Promise<User> {
       return await this.userModel.findById(user._id).select('-password -createdAt -updatedAt');
+    }
+
+    async getFavoriteTeams(user: User): Promise<number[]> {
+      const existingUser = await this.userModel.findById(user._id);
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+      return existingUser.favoriteTeams;
+    }
+
+    async addFavoriteTeam(user: User, teamId: number): Promise<{favoriteTeams: number[]}> {
+      const existingUser = await this.userModel.findById(user);
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+      if (existingUser.favoriteTeams.includes(teamId)) {
+        throw new ConflictException('Team already exists on favorites');
+      }
+      if (existingUser.favoriteTeams.length >= 5) {
+        throw new BadRequestException('You can only have 5 favorite teams');
+      }
+      existingUser.favoriteTeams.push(teamId);
+      existingUser.save();
+
+      return {favoriteTeams: existingUser.favoriteTeams};
+    }
+
+    async removeFavoriteTeam(user: User, teamId: number): Promise<{favoriteTeams: number[]}> {
+        const existingUser = await this.userModel.findById(user._id);
+        if (!existingUser) {
+          throw new NotFoundException('User not found');
+        }
+
+        const teamIndex = existingUser.favoriteTeams.indexOf(teamId);
+        if (teamIndex === -1) {
+          throw new NotFoundException('Team not found on favorites');
+        }
+        existingUser.favoriteTeams.splice(teamIndex, 1);
+        existingUser.save();
+
+        return {favoriteTeams: existingUser.favoriteTeams};
     }
 }

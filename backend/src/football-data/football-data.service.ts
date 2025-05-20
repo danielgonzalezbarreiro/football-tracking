@@ -28,4 +28,23 @@ export class FootballDataService {
       throw new InternalServerErrorException('Failed to fetch teams');
     }
   }
+
+  async getNextFixturesByTeamId(teamId: string,): Promise<any> {
+    try {
+      const season = 2023;
+      const today = new Date();
+      const simulatedToday = new Date(new Date(today).setFullYear(2023)).toISOString().split('T')[0];
+
+      const requestUrl = `${this.apiUrl}/fixtures?team=${teamId}&season=${season}&from=${simulatedToday}&to=2023-12-30`;
+      const requestHeaders = {
+        'x-rapidapi-key': `${this.apiKey}`,
+      };
+
+      const response = await firstValueFrom(this.httpService.get(requestUrl, { headers: requestHeaders }));
+      return response.data;
+
+    } catch {
+      throw new InternalServerErrorException('Failed to fetch fixtures');
+    }
+  }
 }
