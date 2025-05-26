@@ -27,6 +27,10 @@
   background-color: var(--primary);
   color: var(--primary-content);
 }
+[data-theme="abyss"] .btn-primary:hover {
+  background-color: var(--secondary-content);
+  color: var(--secondary);
+}
 
 [data-theme="abyss"] .text-primary {
   color: var(--primary);

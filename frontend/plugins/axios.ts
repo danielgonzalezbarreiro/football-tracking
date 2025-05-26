@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useUserStore } from '~/stores/user'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
@@ -7,7 +8,16 @@ export default defineNuxtPlugin((nuxtApp) => {
   })
 
   api.interceptors.request.use((request) => {
-    const token = localStorage.getItem('token')
+    let token = null
+    try {
+      const userStore = useUserStore()
+      token = userStore.token
+    } catch (e) {
+      token = localStorage.getItem('token')
+    }
+    if (!token) {
+      token = localStorage.getItem('token')
+    }
     if (token) {
       request.headers.Authorization = `Bearer ${token}`
     }
@@ -18,6 +28,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     response => response,
     error => {
       if (error.response && error.response.status === 401) {
+  
       }
       return Promise.reject(error)
     }

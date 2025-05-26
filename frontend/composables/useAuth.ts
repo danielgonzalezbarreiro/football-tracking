@@ -1,4 +1,5 @@
 import { useUserStore } from "~/stores/user";
+import { computed } from 'vue'
 
 export function useAuth() {
   const userStore = useUserStore()
@@ -15,7 +16,7 @@ export function useAuth() {
       userStore.setToken(token)
 
       await fetchMe()
-      router.push('/teams')
+      router.push('/dashboard/teams')
     } catch (error: any) {
       console.error('Login error:', error)
       throw error.response?.data?.message || "Login error"
@@ -64,8 +65,8 @@ export function useAuth() {
     logout,
     fetchMe,
     initAuth,
-    user: userStore.user,
-    token: userStore.token,
+    user: computed(() => userStore.user),
+    token: computed(() => userStore.token),
     isAuthenticated: computed(() => !!userStore.token)
   }
 }
