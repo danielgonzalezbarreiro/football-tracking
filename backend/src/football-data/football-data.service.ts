@@ -29,6 +29,20 @@ export class FootballDataService {
     }
   }
 
+  async getTeamById(teamId: number): Promise<any> {
+    try {
+      const requestUrl = `${this.apiUrl}/teams?id=${teamId}`;
+      const requestHeaders = {
+        'x-rapidapi-key': `${this.apiKey}`,
+      }
+      const response = await firstValueFrom(this.httpService.get(requestUrl, { headers: requestHeaders }));
+      return response.data;
+    } catch(error) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to fetch team');
+    }
+  }
+
   async getNextFixturesByTeamId(teamId: string,): Promise<any> {
     try {
       const season = 2023;
